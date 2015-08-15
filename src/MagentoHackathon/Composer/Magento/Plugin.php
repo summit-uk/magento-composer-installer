@@ -41,7 +41,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * The type of packages this plugin supports
      */
     const PACKAGE_TYPE = 'magento-module';
-    
+
     const VENDOR_DIR_KEY = 'vendor-dir';
 
     const BIN_DIR_KEY = 'bin-dir';
@@ -93,7 +93,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         $this->applyEvents($eventManager);
     }
-    
+
     protected function applyEvents(EventManager $eventManager)
     {
 
@@ -139,6 +139,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         $this->filesystem = new Filesystem();
         $this->config = new ProjectConfig($composer->getPackage()->getExtra(), $composer->getConfig()->all());
+
+        $this->veryfiyComposerRepositories();
 
         $this->entryFactory = new EntryFactory(
             $this->config,
@@ -234,11 +236,40 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         $moduleManager->updateInstalledPackages($magentoModules);
         $this->deployLibraries();
 
-        if (file_exists($this->config->getMagentoRootDir() . '/app/Mage.php')) {
-            $patcher = new Bootstrap($this->config->getMagentoRootDir());
-            $patcher->patch();
+        $patcher = new Bootstrap($this->config);
+        $patcher->patch();
+    }
+
+    /**
+     * test configured repositories and give message about adding recommended ones
+     */
+    protected function veryfiyComposerRepositories()
+    {
+        $foundFiregento = false;
+        $foundMagento   = false;
+
+        foreach ($this->config->getComposerRepositories() as $repository) {
+            if (!isset($repository["type"]) || $repository["type"] !== "composer") {
+                continue;
+            }
+            if (strpos($repository["url"], "packages.firegento.com") !== false) {
+                $foundFiregento = true;
+            }
+            if (strpos($repository["url"], "packages.magento.com") !== false) {
+                $foundMagento = true;
+            }
+        };
+        $message1 = "<comment>you may want to add the %s repository to composer.</comment>";
+        $message2 = "<comment>add it with:</comment> composer.phar config -g repositories.%s composer %s";
+        if (!$foundFiregento) {
+            $this->io->write(sprintf($message1, 'packages.firegento.com'));
+            $this->io->write(sprintf($message2, 'firegento', 'http://packages.firegento.com'));
         }
-        
+        if (!$foundMagento) {
+            $this->io->write(sprintf($message1, 'packages.magento.com'));
+            $this->io->write(sprintf($message2, 'magento', 'https?://packages.magento.com'));
+        }
+
     }
 
     /**

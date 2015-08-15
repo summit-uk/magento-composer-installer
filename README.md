@@ -9,7 +9,6 @@
 # Magento Composer Installer 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/magento-hackathon/magento-composer-installer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-<img src="https://getcomposer.org/img/logo-composer-transparent.png" itemprop="image" alt="Dart Mosaic" style="height:50px;">
 
 The purpose of this project is to 
 enable [composer](https://github.com/composer/composer) to install Magento modules,
@@ -17,13 +16,21 @@ and automatically integrate them into a Magento installation.
 
 We strongly recommend you to also read the general composer documentations on [getcomposer.org](http://getcomposer.org)
 
-Also you should see [Using composer correctly (confoo) by Igor Wiedler](https://speakerdeck.com/igorw/using-composer-correctly-confoo)
+Also you should see:
+
+ * [Using composer correctly (confoo) by Igor Wiedler](https://speakerdeck.com/igorw/using-composer-correctly-confoo)
+ * 
+ * 
 
  
 ## Project Details
  
 This project only covers the custom installer for composer. If you have problems with outdated versions,
 need to install magento connect modules or similar, you need to look for [packages.firegento.com](http://packages.firegento.com/)
+which you probably should add as composer repository (globally)
+
+```composer config -g repositories.firegento composer http://packages.firegento.com```
+
  
  
 ### support contacts
@@ -47,27 +54,12 @@ other support contacts
 * irc: freenode the channels #magento-composer #magento-reddit and for german speaking people #magento-de 
 * twitter: [@firegento](https://twitter.com/firegento)
 
-## Known issue
-- Error message: `Fatal error: Call to undefined method MagentoHackathon\Composer\Magento\Installer::setDeployManager()` happens when you update from 1.x to 2.x, as we switched from pure installer to plugin.
-
-Solution: remove the `vendor` directory and the `composer.lock` and do a fresh install.
 =======
 ## Known issues
 
-### When upgrading from 1.x to 2.x 
+### using non default autoloading
 
-The update from 1.x to 2.x has to be done with no plugins as otherwise a fatal error will be triggered (which does not hurt, just run the update again and it runs through).
-
-- Error message: `Fatal error: Call to undefined method MagentoHackathon\Composer\Magento\Installer::setDeployManager()` 
-
-To prevent this error, upgrade only *magento-composer-installer* first:
-
-```composer update --no-plugins --no-dev "magento-hackathon/magento-composer-installer"``` 
-
-Fallback Solutions:
-
-1. execute `composer install` two times.
-2. remove the `vendor` directory and `composer.lock` and do a fresh install.
+we handle this topic in our [FAQ](doc/FAQ.md).
 
 ### Timeouts and slow downloading. 
 
@@ -100,18 +92,30 @@ further information can be found on [wikibooks](http://en.wikibooks.org/wiki/Ope
 
 See below for a [generic instruction on how to install composer](#installation-of-composer) if you aren't familiar with it.
 
+### Update the Installer
+
+as this is a composer plugin, you should only use this both commands to update the installer
+
+``` 
+composer require --no-update  magento-hackathon/magento-composer-installer=3.0.2
+composer update --no-plugins --no-scripts magento-hackathon/magento-composer-installer
+```
+
+the second command needs maybe a `--with-dependencies`
 
 ### Install a module in your project
 
-If you want to use [the public Magento module repository](http://packages.firegento.com),
-set up your root ```composer.json``` in your project like this:
+make sure to use [the public Magento module repository](http://packages.firegento.com) as composer repository:
+
+```composer config -g repositories.firegento composer http://packages.firegento.com```
+
+configure your `magento root dir`, the directory where your magento resides:  
+```composer config extra.magento-root-dir composer "htdocs/"```
+ 
+an example how your project ```composer.json``` could look like:
 
 ```json
 {
-    "require": {
-        "your-vendor-name/module-name": "*",
-        "magento-hackathon/magento-composer-installer": "*"
-    },
     "repositories": [
         {
             "type": "composer",
@@ -120,64 +124,6 @@ set up your root ```composer.json``` in your project like this:
     ],
     "extra":{
         "magento-root-dir": "htdocs/"
-    }
-}
-```
-
-If you want to use a github/git/svn/etc repository, 
-set up your root ```composer.json``` in your project like this:
-
-```json
-{
-    "require": {
-        "magento-hackathon/magento-composer-installer":"*",
-        "the-vendor-name/the-module-name": "*"
-    },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/magento-hackathon/magento-composer-installer"
-        },
-        {
-            "type": "vcs",
-            "url": "the/github/or/git/or/svn/etc/repository/uri-of-the-module"
-        }
-    ],
-    "extra":{
-        "magento-root-dir": "htdocs/"
-    }
-}
-```
-Notes:
-
-1. More information about VCS repositories can be found 
-   at [getcomposer.org](http://getcomposer.org/doc/05-repositories.md#vcs)
-
-
-
-### Change the Vendor/Name of your Module
-
-sometimes it will happen, that you change the name or the vendor of a package.
-For example you developed a module in your own namespace and later moved it to an organization, or you moved it
-from one to another organization.
-In this cases you should change your ```composer.json``` a bit to make it for users easier.
-Look for the ```replace``` statement
-
-
-```json
-{
-    "name": "your-new-vendor-name/module-name",
-    "type": "magento-module",
-    "license":"OSL-3.0",
-    "description":"A short one line description of your module",
-    "authors":[
-        {
-            "name":"Author Name",
-            "email":"author@example.com"
-        }
-    ],
-    "replace": {
-        "your-vendor-name/module-name":"*"
     }
 }
 ```
@@ -218,43 +164,6 @@ then run ```vendor/bin/phpunit``` in project-root directory.
 Note: Windows users please run ```phpunit``` with Administrator permissions.
 
 
-### How to overwrite dependencies
-
-We don't want to use always the official repositories for specific dependencies.
-For example for development purpose or use versions with custom patches.
-
-For this case you have the _repositories_ section inside your project composer.json
-Here you can define own package composer.json for specific dependencies by the package name.
-
-This example shows how to use a local git projects local-master branch which even works without a composer.json inside
-and a project in VCS with existing composer.json, which is not yet on packagist.
-
-```json
-{
-   ...
-   "repositories": [
-       {
-          "type": "package",
-          "package": {
-             "name": "magento-hackathon/magento-composer-installer",
-             "version": "dev-master",
-             "type": "composer-installer",
-             "source": {
-                "type": "git",
-                "url": "/public_projects/magento/magento-composer-installer/",
-                "reference": "local-master"
-             },
-             "autoload": {
-                "psr-0": {"MagentoHackathon\\Composer\\Magento": "src/"}
-             },
-             "extra": {
-                "class": "\\MagentoHackathon\\Composer\\Magento\\Installer"
-             }
-          }
-       }
-    ]
-}
-```
 
 ## Installation of composer
 
