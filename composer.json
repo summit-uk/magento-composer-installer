@@ -1,15 +1,15 @@
 {
-    "name":"magento-hackathon/magento-composer-installer",
-    "description":"Composer installer for Magento modules",
+    "name":"summit/magento-composer-installer",
+    "description":"Summit composer installer for Magento modules",
     "keywords":[ "composer-installer", "magento"],
     "minimum-stability":"stable",
     "type":"composer-plugin",
     "license":"OSL-3.0",
-    "homepage":"https://github.com/magento-hackathon/magento-composer-installer",
+    "homepage":"https://github.com/summit-uk/magento-composer-installer",
     "repositories": [
         {
             "type": "composer",
-            "url": "http://packages.firegento.com"
+            "url": "http://packages.summit.co.uk"
         }
     ],
     "authors":[
@@ -36,6 +36,10 @@
         {
             "name":"Vinai Kopp",
             "email":"vinai@netzarbeiter.com"
+        },
+        {
+            "name":"Martin Polivka",
+            "email":"martin.polivka@summitmedia.com"
         }
     ],
     "require":{
