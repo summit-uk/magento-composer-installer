@@ -52,6 +52,9 @@ class ModmanParser implements Parser
                 continue;
             }
             $parts = preg_split('/\s+/', $row, 3, PREG_SPLIT_NO_EMPTY);
+            if (count($parts) == 3) {
+                $parts = preg_split('/\s\s+/', $row, 3, PREG_SPLIT_NO_EMPTY);
+            }
             if (count($parts) === 1) {
                 $part = reset($parts);
                 $map[] = array($part, $part);
